@@ -1,25 +1,57 @@
+import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth, { type NextAuthOptions } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
-import { env } from "../../../env/server.mjs";
+import Moralis from 'moralis';
 
 export const authOptions: NextAuthOptions = {
-  // Include user.id on session
-  callbacks: {
-    session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-      }
-      return session;
+    providers: [
+        CredentialsProvider({
+            name: 'MoralisAuth',
+            credentials: {
+                message: {
+                    label: 'Message',
+                    type: 'text',
+                    placeholder: '0x0',
+                },
+                signature: {
+                    label: 'Signature',
+                    type: 'text',
+                    placeholder: '0x0',
+                },
+            },
+            async authorize(credentials) {
+              try {
+                // "message" and "signature" are needed for authorization
+                // we described them in "credentials" above
+                const message = credentials?.message || '';
+                const signature = credentials?.signature || '';
+
+                await Moralis.start({ apiKey: process.env.MORALIS_API_KEY });
+
+                const { address, profileId } = (
+                  await Moralis.Auth.verify({ message, signature, network: 'evm' })
+                ).raw;
+
+                const user = { address, profileId, signature };
+                // returning the user object and creating  a session
+                return user;
+              } catch (e) {
+                console.error(e);
+                return null;
+              }
+            },
+        }),
+    ],
+    // adding user info to the user session object
+    callbacks: {
+        async jwt({ token, user }) {
+            user && (token.user = user);
+            return token;
+        },
+        async session({ session, token }) {
+            session.user = token.user;
+            return session;
+        },
     },
-  },
-  // Configure one or more authentication providers
-  providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-    // ...add more providers here
-  ],
 };
 
 export default NextAuth(authOptions);
