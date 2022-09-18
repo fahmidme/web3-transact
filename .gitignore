@@ -30,8 +30,9 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env
-.env*.local
+# Comment out for the sake of test project.
+# .env
+# .env*.local
 
 # vercel
 .vercel
