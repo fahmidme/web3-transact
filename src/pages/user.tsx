@@ -1,15 +1,17 @@
 import { getSession, signOut } from 'next-auth/react';
-import { useWeb3Transfer } from "react-moralis";
-import Moralis from 'moralis-v1';
 import { GetServerSideProps } from 'next';
+import { useSendTransaction, usePrepareSendTransaction } from 'wagmi';
+import { BigNumber } from '@ethersproject/bignumber';
 
 const ActionButtons = () => {
-    const { fetch, error, isFetching } = useWeb3Transfer({
-        amount: Moralis.Units.Token(20, 18),
-        receiver: "0x0000000000000000000000000000000000000000",
-        type: "erc20",
-        contractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-    });
+    const { config } = usePrepareSendTransaction({
+      request: {
+        to: '0x0000000000000000000000000000000000000000',
+        value: BigNumber.from("10000000000000000"),
+      },
+    })
+    const { error, isLoading, sendTransaction } =
+      useSendTransaction(config)  
 
     return (
         // Use your custom error component to show errors
@@ -19,8 +21,8 @@ const ActionButtons = () => {
             </div>
             <button
                 className="flex w-56 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg"
-                onClick={() => fetch()}
-                disabled={isFetching}>
+                onClick={() => sendTransaction?.()}
+                disabled={isLoading}>
                 Transact Token
             </button>
 
