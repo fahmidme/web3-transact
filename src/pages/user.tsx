@@ -1,6 +1,7 @@
 import { getSession, signOut } from 'next-auth/react';
 import { useWeb3Transfer } from "react-moralis";
 import Moralis from 'moralis-v1';
+import { GetServerSideProps } from 'next';
 
 const ActionButtons = () => {
     const { fetch, error, isFetching } = useWeb3Transfer({
@@ -25,7 +26,7 @@ const ActionButtons = () => {
 
             <button
                 className="flex mt-2 w-56 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg"
-                onClick={() => signOut({ redirect: "/" })}
+                onClick={() => signOut({ redirect: false, callbackUrl: '/' })}
             >
                 Sign Out
             </button>
@@ -33,8 +34,14 @@ const ActionButtons = () => {
     );
 };
 
+type UserType = {
+  address: string;
+  profileId: string;
+  signature: string;
+};
+
 // gets a prop from getServerSideProps
-function User({ user }) {
+const User = ({ user }: { user: UserType }) => {
     const { address, profileId, signature } = user;
 
     return (
@@ -87,7 +94,7 @@ function User({ user }) {
     );
 }
 
-export async function getServerSideProps(context) {
+export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await getSession(context);
     
     // redirect if not authenticated
