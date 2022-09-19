@@ -1,5 +1,37 @@
 import { getSession, signOut } from 'next-auth/react';
+import { useWeb3Transfer } from "react-moralis";
+import Moralis from 'moralis-v1';
 
+const ActionButtons = () => {
+    const { fetch, error, isFetching } = useWeb3Transfer({
+        amount: Moralis.Units.Token(20, 18),
+        receiver: "0x0000000000000000000000000000000000000000",
+        type: "erc20",
+        contractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    });
+
+    return (
+        // Use your custom error component to show errors
+        <div className="mt-5 align-items m-auto">
+            <div className="mb-5 w-44 text-center m-auto">
+                {error && <div>{error.message}</div>}
+            </div>
+            <button
+                className="flex w-56 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg"
+                onClick={() => fetch()}
+                disabled={isFetching}>
+                Transact Token
+            </button>
+
+            <button
+                className="flex mt-2 w-56 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg"
+                onClick={() => signOut({ redirect: "/" })}
+            >
+                Sign Out
+            </button>
+        </div>
+    );
+};
 
 // gets a prop from getServerSideProps
 function User({ user }) {
@@ -48,13 +80,8 @@ function User({ user }) {
           </div>
         </div>
 
-        <div className="mt-12">
-          <button
-            className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 md:py-4 md:px-10 md:text-lg"
-            onClick={() => signOut({ redirect: "/" })}
-          >
-            Sign Out
-          </button>
+        <div>
+            <ActionButtons />
         </div>
       </main>
     );
